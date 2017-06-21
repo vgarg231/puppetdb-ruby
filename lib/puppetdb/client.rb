@@ -85,7 +85,6 @@ module PuppetDB
       json_query = query.build()
 
       path = "/" + endpoint
-
       filtered_opts = {'query' => json_query}
       opts.each do |k,v|
         if k == :counts_filter
@@ -96,8 +95,7 @@ module PuppetDB
       end
 
       debug("#{path} #{json_query} #{opts}")
-
-      ret = self.class.get(path, :query => filtered_opts)
+      ret = self.class.get(path)
       raise_if_error(ret)
 
       total = ret.headers['X-Records']
