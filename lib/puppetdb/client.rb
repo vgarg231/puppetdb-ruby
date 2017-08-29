@@ -85,6 +85,7 @@ module PuppetDB
       json_query = query.build()
 
       path = "/" + endpoint
+
       filtered_opts = {'query' => json_query}
       opts.each do |k,v|
         if k == :counts_filter
@@ -95,7 +96,28 @@ module PuppetDB
       end
 
       debug("#{path} #{json_query} #{opts}")
-      ret = self.class.get(path)
+
+      ret = self.class.get(path, :query => filtered_opts)
+      raise_if_error(ret)
+
+      total = ret.headers['X-Records']
+      if total.nil?
+        total = ret.parsed_response.length
+      end
+
+      Response.new(ret.parsed_response, total)
+    end
+
+
+    def request_nodes(opts={})
+      query = PuppetDB::Query.maybe_promote(query)
+      json_query = query.build()
+      path = "/nodes"
+      q = URI.encode_www_form(opts)
+      u = URI::HTTP.new(nil, nil, nil, nil, nil, path, nil, q, nil)
+
+      debug("#{path} #{json_query} #{opts}")
+      ret = self.class.get(u.request_uri)
       raise_if_error(ret)
 
       total = ret.headers['X-Records']
